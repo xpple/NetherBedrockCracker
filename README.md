@@ -5,7 +5,7 @@ This Minecraft Fabric mod is a wrapper around the Rust library [Nether Bedrock C
 
 ## Installation
 1. Install the [Fabric Loader](https://fabricmc.net/use/).
-2. Download the [Fabric API](https://minecraft.curseforge.com/projects/fabric/) and move it to your mods folder
+2. Download the [Fabric API](https://minecraft.curseforge.com/projects/fabric/) and move it to your mods folder:
     - Linux/Windows: `.minecraft/mods`.
     - Mac: `minecraft/mods`.
 3. Download Nether Bedrock Cracker from the [releases page](https://modrinth.com/mod/netherbedrockcracker/versions/) and move it to your mods folder.
@@ -37,4 +37,29 @@ Usage: `/nbc:source (run)|(as <entity>)|(positioned <position>)|(rotated <rotati
 This command is largely borrowed from [SeedMapper](https://github.com/xpple/SeedMapper). Basically, it allows you to modify the source from which the command is executed. A common use-case is changing the position from which the command is executed, or forcing the dimension when the server is using an unknown world name.
 
 ## Building from source
-The same [instructions for SeedMapper](https://github.com/xpple/SeedMapper?tab=readme-ov-file#building-the-mod-locally), largely apply here too. However instead of compiling a C library, here you are compiling a Rust library to a shared library. Do not forget to use `--release` when building. Then in order to use [jextract](https://github.com/openjdk/jextract), I used [cbindgen](https://github.com/mozilla/cbindgen) to generate the C header file.
+This mod internally uses (a fork of) the aforementioned Rust library Nether Bedrock Cracker. Java bindings for this library were created with (also a fork of) [jextract](https://github.com/openjdk/jextract). The bindings use the [Foreign Function & Memory API](https://openjdk.org/jeps/454) from [Project Panama](https://openjdk.org/projects/panama/). See [CreateJavaBindingsTask.java](https://github.com/xpple/NetherBedrockCracker/blob/master/buildSrc/src/main/java/dev/xpple/netherbedrockcracker/buildscript/CreateJavaBindingsTask.java) for the Gradle task that automates this.
+
+To build the mod locally, follow these steps:
+
+1. Compile Nether Bedrock Cracker to shared library. The following is for Windows:
+   ```shell
+   cd src/main/rust
+   cargo build --release
+   mv target/release/bedrockcracker.dll ../resources
+   ```
+2. Install LLVM (version 13.0.0 is recommended) and set the environment variable `LLVM_HOME` to the directory where LLVM was installed.
+3. Compile jextract:
+   ```shell
+   cd jextract
+   ./gradlew --stacktrace -Pjdk_home=$JAVA_HOME -Pllvm_home=$LLVM_HOME clean verify
+   ```
+4. Install cbindgen:
+   ```shell
+   cd src/main/rust
+   cargo install --force cbindgen
+   ```
+5. Build the mod:
+   ```shell
+   ./gradlew build
+   ```
+   You should find the Java bindings in `src/main/java/com/github/netherbedrockcracker`.

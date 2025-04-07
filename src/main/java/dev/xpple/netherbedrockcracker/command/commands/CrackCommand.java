@@ -47,7 +47,7 @@ public class CrackCommand {
     private static final SimpleCommandExceptionType NOT_LOADED_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.nbc:crack.notLoaded"));
     private static final SimpleCommandExceptionType ALREADY_CRACKING_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.nbc:crack.alreadyCracking"));
 
-    private static final ExecutorService CRACKING_EXECUTOR = Executors.newCachedThreadPool();
+    private static final ExecutorService crackingExecutor = Executors.newCachedThreadPool();
     private static Future<Integer> currentTask = null;
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
@@ -94,7 +94,7 @@ public class CrackCommand {
         scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x - 1, centerChunkPos.z, ChunkStatus.FULL, false));
         scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x, centerChunkPos.z - 1, ChunkStatus.FULL, false));
 
-        currentTask = CRACKING_EXECUTOR.submit(() -> startCracking(source, bedrockPositions, threads, bedrockGen, mode));
+        currentTask = crackingExecutor.submit(() -> startCracking(source, bedrockPositions, threads, bedrockGen, mode));
         return Command.SINGLE_SUCCESS;
     }
 

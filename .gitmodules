@@ -2,3 +2,7 @@
 	path = src/main/rust
 	url = https://github.com/xpple/Nether_Bedrock_Cracker
 	branch = ffi
+[submodule "jextract"]
+	path = jextract
+	url = https://github.com/xpple/jextract
+	branch = fix-platform-dependent-types

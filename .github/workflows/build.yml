@@ -25,7 +25,7 @@ jobs:
         working-directory: src/main/rust
         run: |
           cargo build --release
-          mv target/release/liblibbedrockcracker.so ../resources/libbedrockcracker.so
+          mv target/release/libbedrockcracker.so ../resources
       - name: Compile shared library (macos-latest)
         if: matrix.os == 'macos-latest'
         working-directory: src/main/rust
@@ -33,13 +33,13 @@ jobs:
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
           cargo build --release --target aarch64-apple-darwin
           cargo build --release --target x86_64-apple-darwin
-          lipo -create -output ../resources/libbedrockcracker.dylib target/aarch64-apple-darwin/release/liblibbedrockcracker.dylib target/x86_64-apple-darwin/release/liblibbedrockcracker.dylib
+          lipo -create -output ../resources/libbedrockcracker.dylib target/aarch64-apple-darwin/release/libbedrockcracker.dylib target/x86_64-apple-darwin/release/libbedrockcracker.dylib
       - name: Compile shared library (windows-latest)
         if: matrix.os == 'windows-latest'
         working-directory: src/main/rust
         run: |
           cargo build --release
-          mv target/release/libbedrockcracker.dll ../resources
+          mv target/release/bedrockcracker.dll ../resources
       - name: Compute SHA256 hash (ubuntu-latest)
         if: matrix.os == 'ubuntu-latest'
         run: sha256sum src/main/resources/libbedrockcracker.so
@@ -48,7 +48,7 @@ jobs:
         run: shasum -a 256 src/main/resources/libbedrockcracker.dylib
       - name: Compute SHA256 hash (windows-latest)
         if: matrix.os == 'windows-latest'
-        run: Get-FileHash -Algorithm SHA256 src/main/resources/libbedrockcracker.dll
+        run: Get-FileHash -Algorithm SHA256 src/main/resources/bedrockcracker.dll
 
       - name: Capture shared library (ubuntu-latest)
         if: matrix.os == 'ubuntu-latest'
@@ -66,13 +66,15 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: libbedrockcracker.dll
-          path: src/main/resources/libbedrockcracker.dll
+          name: bedrockcracker.dll
+          path: src/main/resources/bedrockcracker.dll
 
   build:
     name: Build Nether Bedrock Cracker Mod
     needs: compile-nbc
     runs-on: ubuntu-latest
+    env:
+      LLVM_HOME: /usr/lib/llvm-13
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,7 +83,6 @@ jobs:
       - name: Capture shared library
         uses: actions/download-artifact@v4
         with:
-          pattern: libbedrockcracker.*
           merge-multiple: true
           path: src/main/resources/
       - name: Validate gradle wrapper
@@ -92,7 +93,20 @@ jobs:
           java-version: 23
           distribution: 'temurin'
       - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
+        run: |
+          chmod +x ./gradlew
+          chmod +x ./jextract/gradlew
+      - name: Install LLVM 13
+        run: |
+          wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.0/clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+          tar -xf clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+          sudo mv clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04 $LLVM_HOME
+      - name: Compile jextract
+        working-directory: jextract
+        run: ./gradlew --stacktrace -Pjdk_home=$JAVA_HOME -Pllvm_home=$LLVM_HOME clean verify
+      - name: Install cbindgen
+        working-directory: src/main/rust
+        run: cargo install --force cbindgen
       - name: Build
         run: ./gradlew build
       - name: Capture build artifacts

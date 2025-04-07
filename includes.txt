@@ -1,0 +1,11 @@
+--include-function crack
+--include-function estimate_result_amount
+--include-function free_vec
+--include-struct Block
+--include-struct VecI64
+--include-constant BEDROCK
+--include-constant Normal
+--include-constant OTHER
+--include-constant Paper1_18
+--include-constant StructureSeed
+--include-constant WorldSeed
