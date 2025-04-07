@@ -41,7 +41,7 @@ This mod internally uses (a fork of) the aforementioned Rust library Nether Bedr
 
 To build the mod locally, follow these steps:
 
-1. Compile Nether Bedrock Cracker to shared library. The following is for Windows:
+1. Compile Nether Bedrock Cracker to a shared library. The following is for Windows:
    ```shell
    cd src/main/rust
    cargo build --release
