@@ -5,7 +5,7 @@ This Minecraft Fabric mod is a wrapper around the Rust library [Nether Bedrock C
 
 ## Installation
 1. Install the [Fabric Loader](https://fabricmc.net/use/).
-2. Download the [Fabric API](https://minecraft.curseforge.com/projects/fabric/) and move it to your mods folder
+2. Download the [Fabric API](https://minecraft.curseforge.com/projects/fabric/) and move it to your mods folder:
     - Linux/Windows: `.minecraft/mods`.
     - Mac: `minecraft/mods`.
 3. Download Nether Bedrock Cracker from the [releases page](https://modrinth.com/mod/netherbedrockcracker/versions/) and move it to your mods folder.
