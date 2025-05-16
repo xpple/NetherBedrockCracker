@@ -8,7 +8,7 @@ This Minecraft Fabric mod is a wrapper around the Rust library [Nether Bedrock C
 2. Download the [Fabric API](https://minecraft.curseforge.com/projects/fabric/) and move it to your mods folder:
     - Linux/Windows: `.minecraft/mods`.
     - Mac: `minecraft/mods`.
-3. Download Nether Bedrock Cracker from the [releases page](https://modrinth.com/mod/netherbedrockcracker/versions/) and move it to your mods folder.
+3. Download Nether Bedrock Cracker from the [releases page](https://github.com/xpple/NetherBedrockCracker/releases), unzip it and move it to your mods folder.
 
 ## IMPORTANT
 You need to have Java 23 installed to use this mod. I recommend to get Java 23 from [adoptium.net](https://adoptium.net/temurin/releases/?version=23). Next, configure your Minecraft launcher to use this release of Java.
