@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - master
+  release:
+    types: [published]
 
 jobs:
   compile-nbc:
@@ -70,7 +72,7 @@ jobs:
           path: src/main/resources/bedrockcracker.dll
 
   build:
-    name: Build Nether Bedrock Cracker Mod
+    name: Build Nether Bedrock Cracker mod
     needs: compile-nbc
     runs-on: ubuntu-latest
     env:
@@ -114,3 +116,19 @@ jobs:
         with:
           name: NetherBedrockCracker
           path: build/libs/
+  add-release-asset:
+    name: Add release asset
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event.action == 'published'
+    steps:
+      - name: Capture mod
+        uses: actions/download-artifact@v4
+        with:
+          name: NetherBedrockCracker
+      - name: Add release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
