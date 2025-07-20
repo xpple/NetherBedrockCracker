@@ -63,7 +63,7 @@ tasks.register('createHeaderFileTask', CreateHeaderFileTask) {}
 createJavaBindings.dependsOn('createHeaderFileTask')
 
 processResources {
-    def props = [version: project.mod_version, loader_version: project.fabric_loader_version]
+    def props = [version: project.mod_version, minecraft_dependency_version: project.minecraft_dependency_version, loader_version: project.fabric_loader_version]
     filteringCharset = "UTF-8"
 
     filesMatching("fabric.mod.json") {

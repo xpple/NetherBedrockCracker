@@ -200,11 +200,11 @@ public class CrackCommand {
     }
 
     private static void sendFeedback(CustomClientCommandSource source, Component feedback) {
-        source.getClient().schedule(() -> source.sendFeedback(feedback));
+        source.getClient().tell(() -> source.sendFeedback(feedback));
     }
 
     private static void sendError(CustomClientCommandSource source, Component error) {
-        source.getClient().schedule(() -> source.sendError(error));
+        source.getClient().tell(() -> source.sendError(error));
     }
 
     private enum BedrockGeneration implements StringRepresentable {

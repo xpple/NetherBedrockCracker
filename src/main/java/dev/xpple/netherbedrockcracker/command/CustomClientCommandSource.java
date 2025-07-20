@@ -35,7 +35,7 @@ public class CustomClientCommandSource extends ClientSuggestionProvider implemen
     private final Map<String, Object> meta;
 
     public CustomClientCommandSource(ClientPacketListener listener, Minecraft minecraft, Entity entity, Vec3 position, Vec2 rotation, ClientLevel world, Map<String, Object> meta) {
-        super(listener, minecraft, true);
+        super(listener, minecraft);
 
         this.client = minecraft;
         this.entity = entity;
@@ -55,7 +55,7 @@ public class CustomClientCommandSource extends ClientSuggestionProvider implemen
     @Override
     public void sendFeedback(Component message) {
         this.client.gui.getChat().addMessage(message);
-        this.client.getNarrator().saySystemChatQueued(message);
+        this.client.getNarrator().sayNow(message);
     }
 
     @Override
