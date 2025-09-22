@@ -7,10 +7,10 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import dev.xpple.netherbedrockcracker.command.CustomClientCommandSource;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 
-import static dev.xpple.clientarguments.arguments.CDimensionArgument.*;
 import static dev.xpple.clientarguments.arguments.CEntityArgument.*;
 import static dev.xpple.clientarguments.arguments.CRotationArgument.*;
 import static dev.xpple.clientarguments.arguments.CVec3Argument.*;
+import static dev.xpple.netherbedrockcracker.command.arguments.DimensionArgument.*;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
 
 public class SourceCommand {
