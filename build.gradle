@@ -47,9 +47,9 @@ dependencies {
     include modImplementation("dev.xpple:clientarguments:${project.clientarguments_version}")
     include modImplementation("dev.xpple:betterconfig-fabric:${project.betterconfig_version}")
 
-    modRuntimeOnly('me.djtheredstoner:DevAuth-fabric:1.2.1') {
-        exclude group: 'net.fabricmc', module: 'fabric-loader'
-    }
+//    modRuntimeOnly('me.djtheredstoner:DevAuth-fabric:1.2.1') {
+//        exclude group: 'net.fabricmc', module: 'fabric-loader'
+//    }
 
     testImplementation platform("org.junit:junit-bom:${project.junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'

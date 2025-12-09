@@ -11,8 +11,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.Collection;
@@ -26,10 +26,10 @@ public class DimensionArgument implements ArgumentType<ResourceKey<Level>> {
 
     private static final DynamicCommandExceptionType UNKNOWN_DIMENSION_EXCEPTION = new DynamicCommandExceptionType(dimension -> Component.translatableEscape("argument.dimension.invalid", dimension));
 
-    private static final Map<ResourceLocation, ResourceKey<Level>> DIMENSIONS = ImmutableMap.<ResourceLocation, ResourceKey<Level>>builder()
-        .put(Level.OVERWORLD.location(), Level.OVERWORLD)
-        .put(Level.NETHER.location(), Level.NETHER)
-        .put(Level.END.location(), Level.END)
+    private static final Map<Identifier, ResourceKey<Level>> DIMENSIONS = ImmutableMap.<Identifier, ResourceKey<Level>>builder()
+        .put(Level.OVERWORLD.identifier(), Level.OVERWORLD)
+        .put(Level.NETHER.identifier(), Level.NETHER)
+        .put(Level.END.identifier(), Level.END)
         .build();
 
     public static DimensionArgument dimension() {
@@ -43,7 +43,7 @@ public class DimensionArgument implements ArgumentType<ResourceKey<Level>> {
 
     @Override
     public ResourceKey<Level> parse(StringReader reader) throws CommandSyntaxException {
-        ResourceLocation resourceLocation = ResourceLocation.read(reader);
+        Identifier resourceLocation = Identifier.read(reader);
         ResourceKey<Level> dimension = DIMENSIONS.get(resourceLocation);
         if (dimension == null) {
             throw UNKNOWN_DIMENSION_EXCEPTION.create(resourceLocation);
