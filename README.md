@@ -10,14 +10,21 @@ This Minecraft Fabric mod is a wrapper around the Rust library [Nether Bedrock C
     - Mac: `minecraft/mods`.
 3. Download Nether Bedrock Cracker from the [releases page](https://github.com/xpple/NetherBedrockCracker/releases), unzip it and move it to your mods folder.
 
-## IMPORTANT
-You need to have Java 23 installed to use this mod. I recommend to get Java 23 from [adoptium.net](https://adoptium.net/temurin/releases/?version=23). Next, configure your Minecraft launcher to use this release of Java.
+## IMPORTANT FOR 1.21.11 AND BELOW
+You need to have at least Java 23 installed to use this mod. I recommend to get Java 23 (or higher) from [adoptium.net](https://adoptium.net/temurin/releases/?version=23). Next, configure your Minecraft launcher to use this release of Java.
+
 - Vanilla launcher: Go to `Installations` -> `Edit` -> `More options` -> `Java executable`.
 - MultiMC: Go to `Edit Instance` -> `Settings` -> `Java` -> `Java Installation`.
 - PrismLauncher: Go to `Settings` -> `Java` -> `Java Runtime` -> `Auto-Detect...`.
-    - Do not forget to enable "Skip Java compatibility checks".
+- Modrinth App: Go to `Instance settings` -> `Java and memory` -> `Custom Java installation` -> `Browse`
+
+Sometimes it may be necessary to click the option for skipping the Java compatibility check.
+
+If you are on Windows, make sure to select `javaw.exe`, not `java.exe`.
 
 If you run into issues, contact your launcher's support.
+
+As of 26.1 this step is no longer necessary.
 
 ## Commands
 The mod comes with two commands. The most important command is `/nbc:crack`.
@@ -46,16 +53,17 @@ To build the mod locally, follow these steps:
    cd src/main/rust
    cargo build --release
    mv target/release/bedrockcracker.dll ../resources
+   cd ../../../
    ```
 2. Install LLVM (version 13.0.0 is recommended) and set the environment variable `LLVM_HOME` to the directory where LLVM was installed.
 3. Compile jextract:
    ```shell
    cd jextract
    ./gradlew --stacktrace -Pjdk_home=$JAVA_HOME -Pllvm_home=$LLVM_HOME clean verify
+   cd ../
    ```
 4. Install cbindgen:
    ```shell
-   cd src/main/rust
    cargo install --force cbindgen
    ```
 5. Build the mod:
@@ -63,3 +71,5 @@ To build the mod locally, follow these steps:
    ./gradlew build
    ```
    You should find the Java bindings in `src/main/java/com/github/netherbedrockcracker`.
+
+Lastly, you can also consult the [GitHub Actions workflow file](https://github.com/xpple/NetherBedrockCracker/blob/master/.github/workflows/build.yml), which contains complete build instructions for each major OS.

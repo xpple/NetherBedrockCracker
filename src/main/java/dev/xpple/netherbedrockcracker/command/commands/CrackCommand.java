@@ -36,7 +36,7 @@ import java.util.concurrent.Future;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.*;
 import static dev.xpple.clientarguments.arguments.CEnumArgument.*;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.*;
 
 public class CrackCommand {
 
@@ -83,16 +83,16 @@ public class CrackCommand {
             throw ALREADY_CRACKING_EXCEPTION.create();
         }
 
-        ClientChunkCache chunkSource = source.getWorld().getChunkSource();
+        ClientChunkCache chunkSource = source.getLevel().getChunkSource();
         BlockPos position = BlockPos.containing(source.getPosition());
-        ChunkPos centerChunkPos = new ChunkPos(position);
+        ChunkPos centerChunkPos = ChunkPos.containing(position);
 
         List<BlockPos> bedrockPositions = new ArrayList<>();
-        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x, centerChunkPos.z, ChunkStatus.FULL, false));
-        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x + 1, centerChunkPos.z, ChunkStatus.FULL, false));
-        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x, centerChunkPos.z + 1, ChunkStatus.FULL, false));
-        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x - 1, centerChunkPos.z, ChunkStatus.FULL, false));
-        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x, centerChunkPos.z - 1, ChunkStatus.FULL, false));
+        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x(), centerChunkPos.z(), ChunkStatus.FULL, false));
+        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x() + 1, centerChunkPos.z(), ChunkStatus.FULL, false));
+        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x(), centerChunkPos.z() + 1, ChunkStatus.FULL, false));
+        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x() - 1, centerChunkPos.z(), ChunkStatus.FULL, false));
+        scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x(), centerChunkPos.z() - 1, ChunkStatus.FULL, false));
 
         currentTask = crackingExecutor.submit(() -> startCracking(source, bedrockPositions, threads, bedrockGen, mode));
         return Command.SINGLE_SUCCESS;
@@ -125,7 +125,7 @@ public class CrackCommand {
     }
 
     private static int startCracking(CustomClientCommandSource source, List<BlockPos> bedrockPositions, int threads, BedrockGeneration bedrockGen, OutputMode mode) {
-        final long biomeZoomSeed = source.getWorld().getBiomeManager().biomeZoomSeed;
+        final long biomeZoomSeed = source.getLevel().getBiomeManager().biomeZoomSeed;
 
         int size = bedrockPositions.size();
         try (Arena arena = Arena.ofConfined()) {
