@@ -1,6 +1,7 @@
 package dev.xpple.netherbedrockcracker;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.logging.LogUtils;
 import dev.xpple.netherbedrockcracker.command.commands.CrackCommand;
 import dev.xpple.netherbedrockcracker.command.commands.SourceCommand;
 import net.fabricmc.api.ClientModInitializer;
@@ -9,6 +10,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.commands.CommandBuildContext;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 public class NetherBedrockCrackerMod implements ClientModInitializer {
 
     public static final String MOD_ID = "netherbedrockcracker";
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     static {
         String libraryName = System.mapLibraryName("bedrockcracker");

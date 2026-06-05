@@ -4,8 +4,8 @@
   "commands.nbc:crack.alreadyCracking": "Already busy cracking!",
   "commands.nbc:crack.started": "Started cracking with %s threads!",
   "commands.nbc:crack.noSeedFound": "No seed found!",
-  "commands.nbc:crack.success": "Found seed: %s",
-  "commands.nbc:crack.fromHashedSeed": "Inferred world seed from hashed seed: %s",
-  "commands.nbc:crack.multipleFound": "Found multiple seeds (%s, truncated to %s):",
-  "commands.nbc:crack.multipleFound.entry": " - %s"
+  "commands.nbc:crack.foundStructureSeeds": "Found %s structure seeds!",
+  "commands.nbc:crack.entry": " - %s",
+  "commands.nbc:crack.foundRandomWorldSeed": "Found randomly generated world seed: %s",
+  "commands.nbc:crack.foundWorldSeedByHash": "Found world seed from hashed seed: %s"
 }

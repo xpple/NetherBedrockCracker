@@ -23,6 +23,10 @@ repositories {
         url = 'https://maven.xpple.dev/maven2'
     }
     maven {
+        name = 'SeedFinding'
+        url = 'https://nexus.seedfinding.com/repository/maven-seedfinding-snapshots'
+    }
+    maven {
         name = 'DJtheRedstoner'
         url = 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1'
     }
@@ -35,6 +39,8 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     include implementation("dev.xpple:clientarguments:${project.clientarguments_version}")
+
+    include implementation("com.seedfinding:mc_core:${project.mc_core_version}")
 
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:${project.devauth_version}") {
         exclude group: 'net.fabricmc', module: 'fabric-loader'

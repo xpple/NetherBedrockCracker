@@ -9,12 +9,18 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.seedfinding.mccore.util.math.NextLongReverser;
+import dev.xpple.netherbedrockcracker.NetherBedrockCrackerMod;
 import dev.xpple.netherbedrockcracker.command.CustomClientCommandSource;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.ChunkPos;
@@ -29,7 +35,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalLong;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -48,7 +54,7 @@ public class CrackCommand {
     private static final SimpleCommandExceptionType ALREADY_CRACKING_EXCEPTION = new SimpleCommandExceptionType(Component.translatable("commands.nbc:crack.alreadyCracking"));
 
     private static final ExecutorService crackingExecutor = Executors.newCachedThreadPool();
-    private static Future<Integer> currentTask = null;
+    private static Future<?> currentTask = null;
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         dispatcher.register(literal("nbc:crack")
@@ -56,9 +62,7 @@ public class CrackCommand {
             .then(argument("threads", integer(1, MAX_THREADS))
                 .executes(ctx -> crack(CustomClientCommandSource.of(ctx.getSource()), getInteger(ctx, "threads")))
                 .then(argument("bedrockgeneration", enumArg(BedrockGeneration.class))
-                    .executes(ctx -> crack(CustomClientCommandSource.of(ctx.getSource()), getInteger(ctx, "threads"), getEnum(ctx, "bedrockgeneration")))
-                    .then(argument("outputmode", enumArg(OutputMode.class))
-                        .executes(ctx -> crack(CustomClientCommandSource.of(ctx.getSource()), getInteger(ctx, "threads"), getEnum(ctx, "bedrockgeneration"), getEnum(ctx, "outputmode")))))));
+                    .executes(ctx -> crack(CustomClientCommandSource.of(ctx.getSource()), getInteger(ctx, "threads"), getEnum(ctx, "bedrockgeneration"))))));
     }
 
     private static int crack(CustomClientCommandSource source) throws CommandSyntaxException {
@@ -70,10 +74,6 @@ public class CrackCommand {
     }
 
     private static int crack(CustomClientCommandSource source, int threads, BedrockGeneration bedrockGen) throws CommandSyntaxException {
-        return crack(source, threads, bedrockGen, OutputMode.WORLD_SEED);
-    }
-
-    private static int crack(CustomClientCommandSource source, int threads, BedrockGeneration bedrockGen, OutputMode mode) throws CommandSyntaxException {
         ResourceKey<Level> dimension = source.getDimension();
         if (dimension != Level.NETHER) {
             throw NOT_IN_NETHER_EXCEPTION.create();
@@ -94,7 +94,7 @@ public class CrackCommand {
         scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x() - 1, centerChunkPos.z(), ChunkStatus.FULL, false));
         scanChunk(bedrockPositions, chunkSource.getChunk(centerChunkPos.x(), centerChunkPos.z() - 1, ChunkStatus.FULL, false));
 
-        currentTask = crackingExecutor.submit(() -> startCracking(source, bedrockPositions, threads, bedrockGen, mode));
+        currentTask = crackingExecutor.submit(() -> startCracking(source, bedrockPositions, threads, bedrockGen));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -124,8 +124,8 @@ public class CrackCommand {
         }
     }
 
-    private static int startCracking(CustomClientCommandSource source, List<BlockPos> bedrockPositions, int threads, BedrockGeneration bedrockGen, OutputMode mode) {
-        final long biomeZoomSeed = source.getLevel().getBiomeManager().biomeZoomSeed;
+    private static void startCracking(CustomClientCommandSource source, List<BlockPos> bedrockPositions, int threads, BedrockGeneration bedrockGen) {
+        Minecraft minecraft = source.getClient();
 
         int size = bedrockPositions.size();
         try (Arena arena = Arena.ofConfined()) {
@@ -142,43 +142,36 @@ public class CrackCommand {
             source.sendFeedback(Component.translatable("commands.nbc:crack.started", threads));
             MemorySegment vecI64 = null;
             try {
-                vecI64 = NetherBedrockCracker.crack(arena, blockArray, size, threads, bedrockGen.num, mode.num);
-                long seedsLen = VecI64.len(vecI64);
-                MemorySegment seedsPtr = VecI64.ptr(vecI64);
+                vecI64 = NetherBedrockCracker.crack(arena, blockArray, size, threads, bedrockGen.num, NetherBedrockCracker.StructureSeed());
+                long[] seeds = VecI64.ptr(vecI64).reinterpret(VecI64.len(vecI64) * NetherBedrockCracker.C_LONG_LONG.byteSize()).toArray(NetherBedrockCracker.C_LONG_LONG);
 
-                if (seedsLen == 0) {
-                    sendError(source, Component.translatable("commands.nbc:crack.noSeedFound"));
-                    return 0;
+                if (seeds.length == 0) {
+                    sendError(Component.translatable("commands.nbc:crack.noSeedFound"));
+                    return;
                 }
-                if (seedsLen == 1) {
-                    long seed = seedsPtr.getAtIndex(NetherBedrockCracker.C_LONG_LONG, 0);
-                    sendFeedback(source, Component.translatable("commands.nbc:crack.success", ComponentUtils.copyOnClickText(Long.toString(seed))));
-                    if (mode != OutputMode.STRUCTURE_SEED) {
-                        return (int) seed;
-                    }
-                    OptionalLong worldSeed = fromHashedSeed(seed, biomeZoomSeed);
-                    if (worldSeed.isPresent()) {
-                        sendFeedback(source, Component.translatable("commands.nbc:crack.fromHashedSeed", ComponentUtils.copyOnClickText(Long.toString(worldSeed.getAsLong()))));
-                    }
-                    return (int) seed;
+                sendFeedback(Component.translatable("commands.nbc:crack.foundStructureSeeds", seeds.length));
+                for (long seed : seeds) {
+                    sendFeedback(Component.translatable("commands.nbc:crack.entry", ComponentUtils.copyOnClickText(Long.toString(seed))));
                 }
-                if (mode == OutputMode.STRUCTURE_SEED) {
-                    for (int i = 0; i < seedsLen; i++) {
-                        long seed = seedsPtr.getAtIndex(NetherBedrockCracker.C_LONG_LONG, i);
-                        OptionalLong worldSeed = fromHashedSeed(seed, biomeZoomSeed);
-                        if (worldSeed.isPresent()) {
-                            sendFeedback(source, Component.translatable("commands.nbc:crack.fromHashedSeed", ComponentUtils.copyOnClickText(Long.toString(worldSeed.getAsLong()))));
-                            return (int) worldSeed.getAsLong();
+                for (long seed : seeds) {
+                    for (long randomSeed : NextLongReverser.getSeeds(seed)) {
+                        long ws = new Random(randomSeed ^ 0x5DEECE66DL).nextLong();
+                        sendFeedback(Component.translatable("commands.nbc:crack.foundRandomWorldSeed", ComponentUtils.copyOnClickText(Long.toString(ws))));
+                    }
+                }
+                if (minecraft.level == null) {
+                    return;
+                }
+                final long biomeZoomSeed = minecraft.level.getBiomeManager().biomeZoomSeed;
+                HashFunction sha256 = Hashing.sha256();
+                for (long seed : seeds) {
+                    for (long u = 0; u < 1L << 16; u++) {
+                        long ws = (u << 48) | seed;
+                        if (sha256.hashLong(ws).asLong() == biomeZoomSeed) {
+                            sendFeedback(Component.translatable("commands.nbc:crack.foundWorldSeedByHash", ComponentUtils.copyOnClickText(Long.toString(ws))));
                         }
                     }
                 }
-                int max = (int) Math.min(10, seedsLen);
-                sendFeedback(source, Component.translatable("commands.nbc:crack.multipleFound", seedsLen, max));
-                for (int i = 0; i < max; i++) {
-                    long seed = seedsPtr.getAtIndex(NetherBedrockCracker.C_LONG_LONG, i);
-                    sendFeedback(source, Component.translatable("commands.nbc:crack.multipleFound.entry", ComponentUtils.copyOnClickText(Long.toString(seed))));
-                }
-                return (int) seedsLen;
             } finally {
                 if (vecI64 != null) {
                     NetherBedrockCracker.free_vec(vecI64);
@@ -187,24 +180,17 @@ public class CrackCommand {
         }
     }
 
-    private static OptionalLong fromHashedSeed(long structureSeed, long biomeZoomSeed) {
-        structureSeed &= (1L << 48) - 1;
-        HashFunction hashFunction = Hashing.sha256();
-        for (long i = 0; i < (1 << 16); i++) {
-            long seed = (i << 48L) | structureSeed;
-            if (hashFunction.hashLong(seed).asLong() == biomeZoomSeed) {
-                return OptionalLong.of(seed);
-            }
+    private static void sendFeedback(MutableComponent component) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            NetherBedrockCrackerMod.LOGGER.info(component.getString());
+            return;
         }
-        return OptionalLong.empty();
+        Minecraft.getInstance().schedule(() -> player.sendSystemMessage(component));
     }
 
-    private static void sendFeedback(CustomClientCommandSource source, Component feedback) {
-        source.getClient().schedule(() -> source.sendFeedback(feedback));
-    }
-
-    private static void sendError(CustomClientCommandSource source, Component error) {
-        source.getClient().schedule(() -> source.sendError(error));
+    private static void sendError(MutableComponent component) {
+        sendFeedback(component.withStyle(ChatFormatting.RED));
     }
 
     private enum BedrockGeneration implements StringRepresentable {
@@ -214,22 +200,6 @@ public class CrackCommand {
         private final int num;
 
         BedrockGeneration(int num) {
-            this.num = num;
-        }
-
-        @Override
-        public @NotNull String getSerializedName() {
-            return this.name();
-        }
-    }
-
-    private enum OutputMode implements StringRepresentable {
-        WORLD_SEED(NetherBedrockCracker.WorldSeed()),
-        STRUCTURE_SEED(NetherBedrockCracker.StructureSeed());
-
-        private final int num;
-
-        OutputMode(int num) {
             this.num = num;
         }
 
