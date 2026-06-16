@@ -18,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
@@ -112,8 +113,8 @@ public class CrackCommand {
         LevelChunkSection floorSection = chunk.getSection(chunk.getSectionIndex(4));
         LevelChunkSection roofSection = chunk.getSection(chunk.getSectionIndex(123));
 
-        for (int x = 0; x < LevelChunkSection.SECTION_WIDTH; x++) {
-            for (int z = 0; z < LevelChunkSection.SECTION_HEIGHT; z++) {
+        for (int x = 0; x < SectionPos.SECTION_SIZE; x++) {
+            for (int z = 0; z < SectionPos.SECTION_SIZE; z++) {
                 if (floorSection.getBlockState(x, 4 & 15, z).is(Blocks.BEDROCK)) {
                     bedrockPositions.add(new BlockPos(startX + x, 4, startZ + z));
                 }
