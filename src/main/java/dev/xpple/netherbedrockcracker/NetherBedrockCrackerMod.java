@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 public class NetherBedrockCrackerMod implements ClientModInitializer {
 
     public static final String MOD_ID = "netherbedrockcracker";
+    public static final String MOD_NAME = "NetherBedrockCracker";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     static {
